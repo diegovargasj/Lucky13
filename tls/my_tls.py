@@ -1,0 +1,68 @@
+from Crypto.Cipher import AES
+
+from tls.MAC import MAC
+from tls.constants import *
+
+
+class MyTLS:
+    def __init__(self, Ke, Km, IV):
+        self.Ke = Ke
+        self.Km = Km
+        self.IV = IV
+        self.MAC = MAC(Km)
+        self.SQN = 0
+        self.version = 0
+        self.type = 0
+
+    def encrypt(self, m):
+        SE = AES.new(self.Ke, AES.MODE_CBC, self.IV)
+        sqn = self.SQN.to_bytes(SQN_SIZE, 'big')
+        hdr = (
+                self.version.to_bytes(VERSION_SIZE, 'big') +
+                self.type.to_bytes(TYPE_SIZE, 'big') +
+                (len(m) // BLOCK_SIZE + 1).to_bytes(LENGTH_SIZE, 'big')
+        )
+        self.SQN += 1
+        plaintext = sqn + hdr + m
+        t = self.MAC.tag(plaintext)
+        return sqn + hdr + SE.encrypt(self._add_padding(m + t))
+
+    def decrypt(self, c):
+        SE = AES.new(self.Ke, AES.MODE_CBC, self.IV)
+        plaintext = SE.decrypt(c[SQN_SIZE + HDR_SIZE:])
+        if self._check_padding(plaintext):
+            pt_t = self._remove_padding(plaintext)
+            message = pt_t[:-MAC_SIZE]
+            tag = pt_t[-MAC_SIZE:]
+            try:
+                self.MAC.verify(c[:SQN_SIZE + HDR_SIZE] + message, tag)
+                return message.decode()
+
+            except ValueError:
+                return None
+
+        else:
+            message = plaintext[:-MAC_SIZE]
+            tag = plaintext[-MAC_SIZE:]
+            self.MAC.verify(c[:SQN_SIZE + HDR_SIZE] + message, tag)
+            return None
+
+    def _check_padding(self, p):
+        last_byte = p[-1]
+        if last_byte >= BLOCK_SIZE:
+            return False
+
+        for i in range(2, last_byte + 2):
+            if p[-i] != p[-1]:
+                return False
+
+        return True
+
+    def _add_padding(self, p):
+        padding_len = BLOCK_SIZE - len(p) % BLOCK_SIZE
+        padding = bytes([padding_len - 1]) * padding_len
+        return p + padding
+
+    def _remove_padding(self, p):
+        pad_len = p[-1]
+        return p[:-(pad_len + 1)]

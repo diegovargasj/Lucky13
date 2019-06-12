@@ -1,16 +1,23 @@
 import math
+from numpy import argmin
+from time import time
 
 
 class CorrectPaddingOracle:
-    def __init__(self):
+    def __init__(self, tls, n=10):
         self.minRegister = None
         self.minDelaly = math.inf
+        self.tls = tls
+        self.n = n
 
-    def add_delay(self, register, delay):
-        if delay < self.minDelaly:
-            self.minDelaly = delay
-            self.minRegister = register
+    def find_correct_padding(self, ciphertexts):
+        delays = []
+        for i in range(len(ciphertexts)):
+            ciphertext = ciphertexts[i]
+            init_time = time()
+            for j in range(self.n):
+                self.tls.decrypt(ciphertext)
 
-    def get_correct_padding_register(self):
-        self.minDelaly = math.inf
-        return self.minRegister
+            delays.append(time() - init_time)
+
+        return argmin(delays)

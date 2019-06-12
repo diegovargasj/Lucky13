@@ -1,13 +1,9 @@
-from network.Connection import Connection
-from oracle.CorrectPaddingOracle import CorrectPaddingOracle
-
-
 class Lucky13Adversary:
-    def __init__(self, ciphertext, inPort, destIP, destPort):
+    def __init__(self, ciphertext, oracle):
         self.ciphertext = ciphertext
         self.delta = 0x0
-        self.conn = Connection(inPort, destIP, destPort)
-        self.oracle = CorrectPaddingOracle()
+        self.oracle = oracle
+        self.recovered = b''
 
     def decipher(self):
         # TODO implement attack

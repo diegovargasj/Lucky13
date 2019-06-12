@@ -1,21 +1,19 @@
-from argparse import ArgumentParser
+from Crypto import Random
 
 from adversary.Lucky13Adversary import Lucky13Adversary
-from network.Connection import Sniffer
+from oracle.CorrectPaddingOracle import CorrectPaddingOracle
+from tls.constants import *
+from tls.my_tls import MyTLS
 
 if __name__ == '__main__':
-    parser = ArgumentParser(
-        description='Basic implementation of TLS/DTLS attack Lucky 13.'
-    )
-    parser.add_argument('inPort', metavar='-p', type=int, help='listening port')
-    parser.add_argument('destIP', metavar='-ip', type=str, help='destination ip')
-    parser.add_argument('destPort', metavar='-o', type=int, help='destination port')
-    args = parser.parse_args()
-    inPort = args['inPort']
-    destIP = args['destIP']
-    destPort = args['destPort']
-    sniffer = Sniffer()
-    ciphertext = sniffer.intercept()
-    adversary = Lucky13Adversary(ciphertext, inPort, destIP, destPort)
-    plaintext = adversary.decipher()
-    print(f'Plaintext recovered: {plaintext}')
+    Ke = Random.new().read(KEY_SIZE)
+    Km = Random.new().read(KEY_SIZE)
+    IV = Random.new().read(BLOCK_SIZE)
+    tls = MyTLS(Ke, Km, IV)
+    plaintext = input('Enter message: ').encode()
+    ciphertext = tls.encrypt(plaintext)
+    print(f'Ciphertext: {ciphertext}')
+    oracle = CorrectPaddingOracle(tls)
+    adversary = Lucky13Adversary(ciphertext, oracle)
+    recoveredText = adversary.decipher()
+    print(f'Plaintext recovered: {recoveredText}')
