@@ -26,8 +26,8 @@ class Lucky13Adversary:
                     attack_blocks
                 ) + 1
                 d = self.__get_delta(correct_delta, deltas)
-                target_byte = self.__c_att(ciphertext, d)[-BLOCK_SIZE - bt - 1]
-                recovered += bytes([target_byte ^ bt])
+                target_byte = self.__c_att(ciphertext, d)[-bt - 1]
+                recovered += bytes([target_byte ^ bt ^ correct_delta])
                 deltas = [correct_delta] + deltas
                 for i in range(len(deltas)):
                     deltas[i] = (deltas[i] + 1) % 256

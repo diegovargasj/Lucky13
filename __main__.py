@@ -5,8 +5,9 @@ from oracle.CorrectPaddingOracle import CorrectPaddingOracle
 from tls.constants import *
 from tls.my_tls import MyTLS
 
-
 debug = True
+N = 50
+
 if debug:
     Ke = b'secretpassword12'
     Km = b'1234567890123456'
@@ -18,7 +19,7 @@ else:
     IV = Random.new().read(BLOCK_SIZE)
 
 tls = MyTLS(Ke, Km, IV)
-oracle = CorrectPaddingOracle(tls, 300)
+oracle = CorrectPaddingOracle(tls, N)
 
 plaintext = input('Enter message: ').encode()
 ciphertext = tls.encrypt(plaintext)

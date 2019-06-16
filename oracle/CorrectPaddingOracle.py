@@ -20,5 +20,5 @@ class CorrectPaddingOracle:
                     pass
 
             delays.append(time() - init_time)
-
+        
         return int(argmin(delays))
