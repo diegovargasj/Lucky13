@@ -1,3 +1,5 @@
+from time import sleep
+
 from Crypto.Cipher import AES
 
 from tls.MAC import MAC
@@ -25,20 +27,19 @@ class MyTLS:
         self.SQN += 1
         plaintext = sqn + hdr + m
         t = self.MAC.tag(plaintext)
-        return sqn + hdr + SE.encrypt(self._add_padding(m + t))
+        return sqn + hdr + SE.encrypt(self.__add_padding(m + t))
 
     def decrypt(self, c):
         SE = AES.new(self.Ke, AES.MODE_CBC, self.IV)
         plaintext = SE.decrypt(c[SQN_SIZE + HDR_SIZE:])
-        if self._check_padding(plaintext):
-            pt_t = self._remove_padding(plaintext)
+        if self.__check_padding(plaintext):
+            pt_t = self.__remove_padding(plaintext)
             message = pt_t[:-MAC_SIZE]
             tag = pt_t[-MAC_SIZE:]
-            try:
-                self.MAC.verify(c[:SQN_SIZE + HDR_SIZE] + message, tag)
+            if self.MAC.verify(c[:SQN_SIZE + HDR_SIZE] + message, tag):
                 return message.decode()
 
-            except ValueError:
+            else:
                 return None
 
         else:
@@ -47,7 +48,7 @@ class MyTLS:
             self.MAC.verify(c[:SQN_SIZE + HDR_SIZE] + message, tag)
             return None
 
-    def _check_padding(self, p):
+    def __check_padding(self, p):
         last_byte = p[-1]
         if last_byte >= BLOCK_SIZE:
             return False
@@ -58,11 +59,11 @@ class MyTLS:
 
         return True
 
-    def _add_padding(self, p):
+    def __add_padding(self, p):
         padding_len = BLOCK_SIZE - len(p) % BLOCK_SIZE
         padding = bytes([padding_len - 1]) * padding_len
         return p + padding
 
-    def _remove_padding(self, p):
+    def __remove_padding(self, p):
         pad_len = p[-1]
         return p[:-(pad_len + 1)]
