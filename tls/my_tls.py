@@ -1,5 +1,3 @@
-from time import sleep
-
 from Crypto.Cipher import AES
 
 from tls.MAC import MAC

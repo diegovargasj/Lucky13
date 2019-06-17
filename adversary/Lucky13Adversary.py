@@ -6,35 +6,65 @@ from tls.constants import BLOCK_SIZE
 class Lucky13Adversary:
     def __init__(self, oracle):
         self.oracle = oracle
+        self.pbar = None
 
     def decipher(self, ciphertext):
-        fullCiphertext = bytearray(ciphertext[13:])
+        ciphertext = bytearray(ciphertext)
+        fullCiphertext = ciphertext[13 + BLOCK_SIZE:]
         recovered = b''
         blocks = len(fullCiphertext) // BLOCK_SIZE
-        pbar = tqdm(total=len(fullCiphertext))
-        cnt = 0
-        for b in range(blocks):
-            ciphertext = fullCiphertext[b * BLOCK_SIZE: (b + 1) * BLOCK_SIZE]
-            deltas = []
-            for bt in range(BLOCK_SIZE):
-                attack_blocks = []
-                for i in range(255):
-                    delta = self.__get_delta(i + 1, deltas)
-                    attack_blocks.append(self.__c_att(ciphertext, delta))
+        self.pbar = tqdm(total=len(fullCiphertext))
+        for block in range(blocks):
+            recovered = self.__recover_last_block(ciphertext) + recovered
+            ciphertext = ciphertext[:-BLOCK_SIZE]
 
-                correct_delta = self.oracle.find_correct_padding(
-                    attack_blocks
-                ) + 1
-                d = self.__get_delta(correct_delta, deltas)
-                target_byte = self.__c_att(ciphertext, d)[-bt - 1]
-                recovered += bytes([target_byte ^ bt ^ correct_delta])
-                deltas = [correct_delta] + deltas
-                for i in range(len(deltas)):
-                    deltas[i] = (deltas[i] + 1) % 256
+        return recovered
 
-                cnt += 1
-                pbar.update(cnt * 2 / len(fullCiphertext))
+    def __recover_last_block(self, ciphertext):
+        correct_index = self.__recover_last_two_bytes(ciphertext)
+        recovered = bytearray(
+            [
+                (correct_index // 256) ^ 1,
+                (correct_index % 256) ^ 1
+            ]
+        )
+        deltas = [correct_index // 256, correct_index % 256]
+        print(bytearray(deltas))
+        for byte in range(2, BLOCK_SIZE):
+            recovered = self.__recover_byte(
+                ciphertext,
+                deltas,
+                byte
+            ) + recovered
+            for i in range(len(deltas)):
+                deltas[i] = (deltas[i] + 1) % 256
 
+        return recovered
+
+    def __recover_last_two_bytes(self, ciphertext):
+        attack_blocks = []
+        base = bytearray(BLOCK_SIZE - 2)
+        for i in range(256):
+            for j in range(256):
+                delta = base + bytearray([i, j])
+                attack_blocks.append(self.__c_att(ciphertext, delta))
+
+        correct_index = self.oracle.find_correct_padding(attack_blocks)
+        self.pbar.update()
+        self.pbar.update()
+        return correct_index
+
+    def __recover_byte(self, ciphertext, deltas, byte):
+        recovered = b''
+        attack_blocks = []
+        for i in range(256):
+            delta = self.__get_delta(i, deltas)
+            attack_blocks.append(self.__c_att(ciphertext, delta))
+
+        correct_delta = self.oracle.find_correct_padding(attack_blocks)
+        recovered += bytes([byte ^ correct_delta])
+        deltas.insert(0, correct_delta)
+        self.pbar.update()
         return recovered
 
     def __get_delta(self, num, deltas):
@@ -42,10 +72,9 @@ class Lucky13Adversary:
         return reminder + num.to_bytes(1, 'big') + bytearray(deltas)
 
     def __c_att(self, ciphertext, delta):
-        return delta + ciphertext
-        # for i in range(BLOCK_SIZE):
-        #     ciphertext[-2 * BLOCK_SIZE + i] = (
-        #             ciphertext[-2 * BLOCK_SIZE + i] ^ delta[i]
-        #     )
-        #
-        # return ciphertext
+        for i in range(BLOCK_SIZE):
+            ciphertext[-2 * BLOCK_SIZE + i] = (
+                    ciphertext[-2 * BLOCK_SIZE + i] ^ delta[i]
+            )
+
+        return ciphertext

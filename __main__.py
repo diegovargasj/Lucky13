@@ -6,7 +6,8 @@ from tls.constants import *
 from tls.my_tls import MyTLS
 
 debug = True
-N = 50
+N = 100
+max_parallel = 2
 
 if debug:
     Ke = b'secretpassword12'
@@ -18,13 +19,15 @@ else:
     Km = Random.new().read(KEY_SIZE)
     IV = Random.new().read(BLOCK_SIZE)
 
-tls = MyTLS(Ke, Km, IV)
-oracle = CorrectPaddingOracle(tls, N)
+if __name__ == '__main__':
+    plaintext = input('Enter message: ').encode()
 
-plaintext = input('Enter message: ').encode()
-ciphertext = tls.encrypt(plaintext)
-print(f'Ciphertext: {ciphertext}')
+    tls = MyTLS(Ke, Km, IV)
+    oracle = CorrectPaddingOracle(tls, N, max_parallel)
 
-adversary = Lucky13Adversary(oracle)
-recoveredText = adversary.decipher(ciphertext)
-print(f'Plaintext recovered: {recoveredText}')
+    ciphertext = tls.encrypt(plaintext)
+    print(f'Ciphertext: {ciphertext}')
+
+    adversary = Lucky13Adversary(oracle)
+    recoveredText = adversary.decipher(ciphertext)
+    print(f'Plaintext recovered: {recoveredText}')
