@@ -6,7 +6,7 @@ from tls.constants import *
 from tls.my_tls import MyTLS
 
 debug = True
-N = 100
+N = 30
 max_parallel = 2
 
 if debug:

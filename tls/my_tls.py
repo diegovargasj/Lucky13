@@ -1,3 +1,5 @@
+from time import sleep
+
 from Crypto.Cipher import AES
 
 from tls.MAC import MAC
@@ -35,12 +37,13 @@ class MyTLS:
             message = pt_t[:-MAC_SIZE]
             tag = pt_t[-MAC_SIZE:]
             if self.MAC.verify(c[:SQN_SIZE + HDR_SIZE] + message, tag):
-                return message.decode()
+                return message
 
             else:
                 return None
 
         else:
+            sleep(0.001)
             message = plaintext[:-MAC_SIZE]
             tag = plaintext[-MAC_SIZE:]
             self.MAC.verify(c[:SQN_SIZE + HDR_SIZE] + message, tag)
@@ -51,8 +54,8 @@ class MyTLS:
         if last_byte >= BLOCK_SIZE:
             return False
 
-        for i in range(2, last_byte + 2):
-            if p[-i] != p[-1]:
+        for byte in p[-last_byte - 1:]:
+            if byte != last_byte:
                 return False
 
         return True

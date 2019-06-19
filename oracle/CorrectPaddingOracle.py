@@ -1,3 +1,4 @@
+from statistics import mean
 from time import time
 
 from numpy import argmin
@@ -15,6 +16,10 @@ class CorrectPaddingOracle:
             delays.append(self.__get_time(ciphertext))
 
         print(min(delays))
+        print(mean(delays))
+        chosen = ciphertexts[int(argmin(delays))]
+        print(chosen)
+        print(self.tls.decrypt(chosen))
         return int(argmin(delays))
 
     def __get_time(self, ciphertext):

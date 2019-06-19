@@ -1,5 +1,7 @@
 from Crypto.Hash import HMAC, SHA1
 
+from tls.constants import BLOCK_SIZE
+
 
 class MAC:
     def __init__(self, k):
@@ -15,3 +17,4 @@ class MAC:
         hmac = self.hmac.copy()
         hmac.update(m)
         return hmac.digest() == t
+
