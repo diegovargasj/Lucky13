@@ -17,9 +17,7 @@ class CorrectPaddingOracle:
 
         print(min(delays))
         print(mean(delays))
-        chosen = ciphertexts[int(argmin(delays))]
-        print(chosen)
-        print(self.tls.decrypt(chosen))
+        print(max(delays))
         return int(argmin(delays))
 
     def __get_time(self, ciphertext):

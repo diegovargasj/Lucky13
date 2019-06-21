@@ -2,11 +2,12 @@ from Crypto import Random
 
 from adversary.Lucky13Adversary import Lucky13Adversary
 from oracle.CorrectPaddingOracle import CorrectPaddingOracle
+from oracle.CheatingOracle import CheatingOracle
 from tls.constants import *
 from tls.my_tls import MyTLS
 
 debug = True
-N = 30
+N = 50
 max_parallel = 2
 
 if debug:
@@ -23,7 +24,8 @@ if __name__ == '__main__':
     plaintext = input('Enter message: ').encode()
 
     tls = MyTLS(Ke, Km, IV)
-    oracle = CorrectPaddingOracle(tls, N, max_parallel)
+    #oracle = CorrectPaddingOracle(tls, N, max_parallel)
+    oracle = CheatingOracle(tls, N, max_parallel)
 
     ciphertext = tls.encrypt(plaintext)
     print(f'Ciphertext: {ciphertext}')
