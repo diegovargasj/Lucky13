@@ -7,7 +7,7 @@ from tls.constants import *
 from tls.my_tls import MyTLS
 
 debug = True
-N = 50
+N = 5
 max_parallel = 2
 
 if debug:
@@ -24,12 +24,12 @@ if __name__ == '__main__':
     plaintext = input('Enter message: ').encode()
 
     tls = MyTLS(Ke, Km, IV)
-    #oracle = CorrectPaddingOracle(tls, N, max_parallel)
-    oracle = CheatingOracle(tls, N, max_parallel)
+    oracle = CorrectPaddingOracle(tls, N)
+    # oracle = CheatingOracle(tls, N)
 
     ciphertext = tls.encrypt(plaintext)
     print(f'Ciphertext: {ciphertext}')
 
     adversary = Lucky13Adversary(oracle)
     recoveredText = adversary.decipher(ciphertext)
-    print(f'Plaintext recovered: {recoveredText}')
+    print(f'Full plaintext recovered: {recoveredText}')

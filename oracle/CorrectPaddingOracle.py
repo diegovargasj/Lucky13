@@ -5,10 +5,9 @@ from numpy import argmin
 
 
 class CorrectPaddingOracle:
-    def __init__(self, tls, n=10, max_parallel=2):
+    def __init__(self, tls, n=10):
         self.tls = tls
         self.n = n
-        self.max_parallel = max_parallel
 
     def find_correct_padding(self, ciphertexts):
         delays = []

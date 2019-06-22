@@ -2,11 +2,11 @@ from math import ceil
 
 from Crypto.Hash import HMAC, SHA1
 
-from tls.constants import BLOCK_SIZE
+from tls.constants import BLOCK_SIZE, MAC_SIZE
 
 
 class MAC:
-    def __init__(self, k, rep=100):
+    def __init__(self, k, rep=10):
         self.k = k
         self.hmac = HMAC.new(key=k, digestmod=SHA1)
         self.sha1 = SHA1.new()
@@ -15,7 +15,7 @@ class MAC:
     def tag(self, m):
         #hmac = self.hmac.copy()
         #hmac.update(m)
-        return self.__hmac.digest(m)
+        return self.__hmac(m)
 
     def verify(self, m, t):
         #hmac = self.hmac.copy()
