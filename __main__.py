@@ -8,24 +8,17 @@ from tls.my_tls import MyTLS
 
 debug = True
 N = 5
-max_parallel = 2
-
-if debug:
-    Ke = b'secretpassword12'
-    Km = b'1234567890123456'
-    IV = b'0000000000000000'
-
-else:
-    Ke = Random.new().read(KEY_SIZE)
-    Km = Random.new().read(KEY_SIZE)
-    IV = Random.new().read(BLOCK_SIZE)
 
 if __name__ == '__main__':
     plaintext = input('Enter message: ').encode()
 
+    Ke = Random.new().read(KEY_SIZE)
+    Km = Random.new().read(KEY_SIZE)
+    IV = Random.new().read(BLOCK_SIZE)
+
     tls = MyTLS(Ke, Km, IV)
-    oracle = CorrectPaddingOracle(tls, N)
-    # oracle = CheatingOracle(tls, N)
+    # oracle = CorrectPaddingOracle(tls, N)
+    oracle = CheatingOracle(tls, N)
 
     ciphertext = tls.encrypt(plaintext)
     print(f'Ciphertext: {ciphertext}')
